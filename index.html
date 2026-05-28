@@ -23,11 +23,12 @@
       padding: 0;
       width: 100%;
       min-height: 100%;
-      overflow: hidden;
       background: #020b25;
       color: #49e68e;
       font-family: 'Barlow', sans-serif;
+
       overflow-x: hidden;
+      overflow-y: auto;
     }
 
     .dashboard {
@@ -42,6 +43,7 @@
 
     .left-column {
       height: calc(100vh - 28px);
+      min-height: 0;
       display: flex;
       flex-direction: column;
       gap: 14px;
@@ -54,10 +56,15 @@
 
     .right-column {
       height: calc(100vh - 28px);
+      min-height: 0;
       display: flex;
       flex-direction: column;
       gap: 14px;
       overflow: hidden;
+    }
+
+    .dashboard {
+      min-height: 100dvh;
     }
 
     /* =========================================
@@ -294,7 +301,83 @@
       MOBILE
     ========================================= */
 
+    @media (max-width: 768px) {
+      .dashboard {
+        padding: 10px;
+      }
+
+      h1 {
+        font-size: 1.8rem !important;
+        line-height: 1.1;
+      }
+
+      #play_button,
+      #reset_button {
+        width: 52px !important;
+        height: 52px !important;
+        font-size: 20px !important;
+      }
+
+      .ranking-row {
+
+        grid-template-columns:
+          36px
+          1fr
+          36px
+          60px;
+
+        height: 72px;
+        min-height: 72px;
+
+        gap: 6px;
+      }
+
+      .avatar {
+        width: 38px;
+        height: 38px;
+      }
+
+      .alias {
+        font-size: 13px;
+      }
+
+      .prono {
+        font-size: 10px;
+      }
+
+      .points-value {
+        font-size: 16px;
+      }
+
+      .rank {
+        font-size: 16px;
+      }
+
+      .timeline-item {
+        padding: 12px !important;
+      }
+
+      #score_block {
+        transform: scale(0.9);
+      }
+
+      #team1,
+      #team2 {
+        font-size: 11px !important;
+      }
+    }
+
     @media (max-width: 1024px) {
+
+      html,
+      body {
+        overflow-y: auto;
+        height: auto;
+      }
+
+      .dashboard {
+        min-height: auto;
+      }
 
       .left-column,
       .right-column {
@@ -305,8 +388,11 @@
       .ranking-box,
       .timeline-box {
         min-height: auto;
+        overflow: visible;
       }
 
+      /* IMPORTANT :
+        scroll désactivé UNIQUEMENT sur mobile */
       #ranking_scroll,
       #timeline_container {
         overflow: visible;
@@ -315,38 +401,74 @@
 
       .ranking-row {
         grid-template-columns:
-          50px
+          40px
           1fr
-          50px
-          110px;
+          40px
+          80px;
 
         height: 52px;
         min-height: 52px;
       }
-      
+
       .avatar {
         width: 34px;
         height: 34px;
       }
 
       .alias {
-        font-size: 22px;
-      }
-
-      .prono {
         font-size: 13px;
       }
 
-      .trend {
-        display: flex;
-        align-items: center;
-        justify-content: center;
+      .prono {
+        font-size: 10px;
       }
 
       .points-value {
-        font-size: 22px;
+        font-size: 18px;
       }
 
+      .rank {
+        font-size: 16px;
+      }
+
+      .bar-content {
+        padding-inline: 8px;
+        gap: 6px;
+      }
+
+      h1 {
+        font-size: 28px !important;
+        line-height: 1.1;
+      }
+
+      #countdown_text {
+        font-size: 28px !important;
+        text-align: center;
+      }
+
+      #match_location,
+      #match_datetime {
+        font-size: 11px;
+      }
+
+      .timeline-item {
+        padding: 12px;
+      }
+
+      .timeline-item .text-xl {
+        font-size: 16px !important;
+      }
+
+      .timeline-item .text-lg {
+        font-size: 15px !important;
+      }
+
+      button#play_button,
+      button#reset_button {
+        width: 52px;
+        height: 52px;
+        font-size: 20px;
+      }
     }
 
   </style>
@@ -366,7 +488,7 @@
       <!-- HEADER -->
       <!-- <div class="bg-[#051538] border border-[#0e5d74] rounded-[26px] px-6 py-4 flex items-center gap-4 shrink-0"> -->
 
-        <div class="bg-[#051538] border border-[#0e5d74] rounded-[26px] px-6 py-4 flex items-center justify-between shrink-0">
+        <div class="bg-[#051538] border border-[#0e5d74] rounded-[26px] px-4 py-4 flex flex-col lg:flex-row items-center justify-between gap-4 shrink-0">
 
           <!-- LEFT -->
           <div class="flex items-center gap-4">
@@ -377,11 +499,11 @@
 
             <div>
 
-              <h1 class="text-5xl font-black leading-none text-[#49e68e]">
+              <h1 class="text-4xl font-black leading-none text-[#49e68e]">
                 FIFA WORLD CUP 2026 x MPP
               </h1>
 
-              <div class="text-[#A6D8BA] text-lg uppercase tracking-[0.22em] mt-1">
+              <div class="text-2xl text-[#A6D8BA] text-lg uppercase tracking-[0.12em] mt-0">
                 À vos pronos !
               </div>
 
@@ -393,42 +515,12 @@
           <div class="flex items-center gap-3">
 
             <!-- RESET -->
-            <button
-              id="reset_button"
-              class="
-                w-16
-                h-16
-                rounded-full
-                bg-[#d64545]
-                text-2xl
-                font-black
-                text-white
-                shadow-2xl
-                hover:scale-105
-                transition-all
-                shrink-0
-              "
-            >
+            <button id="reset_button" class="w-16 h-16 rounded-full bg-[#d64545] text-2xl font-black text-white shadow-2xl hover:scale-105 transition-all shrink-0">
               ↺
             </button>
 
             <!-- PLAY -->
-            <button
-              id="play_button"
-              class="
-                w-16
-                h-16
-                rounded-full
-                bg-[#1fc9a2]
-                text-2xl
-                font-black
-                text-white
-                shadow-2xl
-                hover:scale-105
-                transition-all
-                shrink-0
-              "
-            >
+            <button id="play_button" class="w-16 h-16 rounded-full bg-[#1fc9a2] text-2xl font-black text-white shadow-2xl hover:scale-105 transition-all shrink-0">
               ▶
             </button>
 
@@ -528,14 +620,11 @@
               class="hidden flex-col items-center mt-4"
             >
 
-              <div class="text-5xl mb-2">
+              <div class="text-3xl mb-2">
                 ⏳
               </div>
 
-              <div
-                id="countdown_text"
-                class="text-3xl lg:text-5xl font-black text-[#49e68e]"
-              >
+              <div id="countdown_text" class="text-3xl lg:text-3xl text-center font-black text-[#49e68e]">
                 0s
               </div>
 
@@ -594,38 +683,27 @@
   let interval = null;
   let previousRanks = {};
   async function loadExcel() {
-    try {
-      const EXCEL_URL =
-        'https://raw.githubusercontent.com/nicolaslemouel/quadratic-data-world-cup-2026-mon-petit-prono/main/WorldCup2026.xlsx';
-      const response =
-        await fetch(
-          EXCEL_URL + '?t=' + Date.now()
-        );
-      if (!response.ok) {
-        throw new Error(
-          'Erreur HTTP : ' + response.status
-        );
-      }
-      const arrayBuffer =
-        await response.arrayBuffer();
-      const workbook =
-        XLSX.read(arrayBuffer, {
-          type: 'array'
-        });
-      const sheet =
-        workbook.Sheets['Pronostics'];
-      const rows =
-        XLSX.utils.sheet_to_json(sheet);
-      buildTimeline(rows);
-      renderTimeline();
-      renderMatch(0);
-    }
-    catch (error) {
-      console.error(error);
-      alert(
-        'Impossible de charger le fichier Excel'
+
+    const response =
+      await fetch(
+        './WorldCup2026.xlsx?t=' + Date.now()
       );
-    }
+
+    const arrayBuffer =
+      await response.arrayBuffer();
+
+    const workbook =
+      XLSX.read(arrayBuffer, { type: 'array' });
+
+    const sheet =
+      workbook.Sheets['Pronostics'];
+
+    const rows =
+      XLSX.utils.sheet_to_json(sheet);
+
+    buildTimeline(rows);
+    renderTimeline();
+    renderMatch(0);
   }
 
   function buildTimeline(rows) {
