@@ -110,7 +110,10 @@
       position: absolute;
       left: 0;
       right: 0;
-      top: 0
+      top: 0;
+      will-change: transform;
+      backface-visibility: hidden;
+      transform-style: preserve-3d  
     }
 
     .ranking-row.overtake {
@@ -671,6 +674,8 @@
   let playing = false;
   let interval = null;
   let previousRanks = {};
+  const ROW_HEIGHT = 64;
+
   async function loadExcel() {
 
     const response =
@@ -1329,6 +1334,15 @@
     }
     const container =
       document.getElementById('ranking_container');
+    const firstPositions = {};
+    container
+      .querySelectorAll('.ranking-row')
+      .forEach(row => {
+
+        firstPositions[row.dataset.player] =
+          row.getBoundingClientRect().top;
+
+      });
     const max =
       players[0].points_cumulative;
     let previousPoints = null;
@@ -1457,8 +1471,11 @@
 
       previousRanks[player.profile_id] =
         newRank;
+      row.dataset.targetY =
+        index * ROW_HEIGHT;
+
       row.style.transform =
-        `translateY(${index * 64}px)`;
+        `translateY(${row.dataset.targetY}px)`;
       
       row.querySelector('.rank').innerHTML =
         medal;
@@ -1717,8 +1734,46 @@
         1000
       );
     });
-    container.style.height = 
-      `${players.length * 64}px`
+    requestAnimationFrame(() => {
+
+      container
+        .querySelectorAll('.ranking-row')
+        .forEach(row => {
+
+          const first =
+            firstPositions[row.dataset.player];
+
+          if (first == null) return;
+
+          const last =
+            row.getBoundingClientRect().top;
+
+          const delta =
+            first - last;
+
+          if (!delta) return;
+
+          const targetY =
+            Number(row.dataset.targetY);
+
+          row.style.transition = 'none';
+
+          row.style.transform =
+            `translateY(${targetY + delta}px)`;
+
+          row.offsetHeight;
+
+          row.style.transition =
+            'transform 1800ms cubic-bezier(.22,1,.36,1)';
+
+          row.style.transform =
+            `translateY(${targetY}px)`;
+
+        });
+
+    });
+    container.style.height =
+      `${players.length * ROW_HEIGHT}px`;
   }
 
   function animateValue(
@@ -1969,7 +2024,7 @@
         playButton.innerHTML = '▶';
       }
 
-    }, 1850);
+    }, 2500);
 
   });
 
@@ -1981,7 +2036,7 @@
   const resetButton =
     document.getElementById('reset_button');
 
-  resetButton.addEventListener('click', () => {
+    resetButton.addEventListener('click', () => {
 
     clearInterval(interval);
 
@@ -1992,6 +2047,13 @@
     currentMatchIndex = 0;
 
     previousRanks = {};
+
+    const container =
+      document.getElementById('ranking_container');
+
+    container.innerHTML = '';
+
+    container.style.height = '0px';
 
     renderMatch(0);
 
