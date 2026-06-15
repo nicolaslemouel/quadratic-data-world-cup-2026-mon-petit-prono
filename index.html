@@ -104,7 +104,7 @@
       height: 56px;
       min-height: 56px;
       transition:
-        transform 1200ms cubic-bezier(.22,1,.36,1),
+        transform 1800ms cubic-bezier(.22,1,.36,1),
         opacity 400ms ease;
       will-change: transform;
       position: absolute;
@@ -119,15 +119,12 @@
     }
     @keyframes overtakeFlash {
       0% {
-        transform: scale(1);
         filter: brightness(1);
       }
       25% {
-        transform: scale(1.03);
         filter: brightness(1.35);
       }
       100% {
-        transform: scale(1);
         filter: brightness(1);
       }
     }
@@ -501,11 +498,11 @@
 
             <div>
 
-              <h1 class="text-4xl font-black leading-none text-[#49e68e]">
-                FIFA WORLD CUP 2026 x MPP
+              <h1 class="text-3xl font-black uppercase leading-none text-[#49e68e]">
+                MPP - World Cup 2026
               </h1>
 
-              <div class="text-2xl text-[#A6D8BA] text-lg uppercase tracking-[0.12em] mt-0">
+              <div class="text-1x1 text-[#A6D8BA] text-lg uppercase tracking-[0.05em] mt-0">
                 À vos pronos !
               </div>
 
@@ -599,21 +596,11 @@
 
           </div>
 
-          <div
-            id="score_block"
-            class="flex flex-col items-center justify-center"
-          >
-
-            <div
-              class="text-2xl sm:text-3xl lg:text-4xl font-black tracking-widest leading-none"
-            >
-
+          <div id="score_block" class="flex flex-col items-center justify-center">
+            <div class="text-2xl sm:text-3xl lg:text-4xl font-black tracking-widest leading-none">
               <span id="final_score1">0</span>
-
               <span id="score_separator">-</span>
-
               <span id="final_score2">0</span>
-
             </div>
 
             <!-- COUNTDOWN -->
@@ -622,11 +609,11 @@
               class="hidden flex-col items-center mt-4"
             >
 
-              <div class="text-3xl mb-2">
+              <div class="text-2xl mb-0">
                 ⏳
               </div>
 
-              <div id="countdown_text" class="text-3xl lg:text-3xl text-center font-black text-[#49e68e]">
+              <div id="countdown_text" class="text-3-1 lg:text-3xl text-center font-black text-[#49e68e]">
                 0s
               </div>
 
