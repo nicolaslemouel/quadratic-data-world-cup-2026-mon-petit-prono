@@ -181,9 +181,10 @@
 
     .player-info {
       display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 4px;
+      flex-direction: row;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: nowrap;
     }
 
     .alias,
@@ -203,16 +204,15 @@
     }
 
     .alias {
-      font-size: 16px;
-      font-weight: 900;
+      font-size: 26px;
+      font-weight: 1000;
       text-transform: uppercase;
       line-height: 1;
     }
 
     .prono {
-      font-size: 11px;
-      font-weight: 600;
-      margin-top: 0;
+      font-size: 18px;
+      font-weight: 400;
     }
 
     .points-wrapper {
@@ -1474,8 +1474,11 @@
       row.dataset.targetY =
         index * ROW_HEIGHT;
 
+      // row.style.transform =
+      //   `translateY(${row.dataset.targetY}px)`;
+
       row.style.transform =
-        `translateY(${row.dataset.targetY}px)`;
+        `translate3d(0, ${row.dataset.targetY}px, 0)`;
       
       row.querySelector('.rank').innerHTML =
         medal;
@@ -1577,7 +1580,7 @@
           // Aucun pronostic
           else if (noPrediction) {
 
-            resultIcon = '❌';
+            resultIcon = '😴';
 
           }
 
@@ -1636,7 +1639,7 @@
         }
         else {
           pronoElement.innerText =
-            `Match n°${player.match_id} - Pronostics: ${prono1}${separator}${prono2} ${resultIcon}`;
+            `Match n°${player.match_id} - Prono: ${prono1}${separator}${prono2} ${resultIcon}`;
         }
       }
 
@@ -1767,7 +1770,7 @@
             'transform 1800ms cubic-bezier(.22,1,.36,1)';
 
           row.style.transform =
-            `translateY(${targetY}px)`;
+            `translate3d(0, ${targetY}px, 0)`;
 
         });
 
