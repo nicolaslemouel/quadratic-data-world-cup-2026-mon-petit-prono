@@ -367,6 +367,34 @@
       }
     }
 
+    .stat-card{
+        background:#031027;
+        border:1px solid #0e5d74;
+        border-radius:18px;
+        padding:20px;
+        transition:.25s;
+
+    }
+
+    .stat-card:hover{
+        transform:translateY(-2px);
+        border-color:#49e68e;
+    }
+
+    .stat-title{
+        color:#A6D8BA;
+        text-transform:uppercase;
+        font-size:14px;
+        font-weight:700;
+    }
+
+    .stat-value{
+        color:#49e68e;
+        font-size:34px;
+        font-weight:900;
+        margin-top:10px;
+    }
+
     @media (max-width: 1024px) {
 
       html,
@@ -515,6 +543,18 @@
 
           <!-- RIGHT -->
           <div class="flex items-center gap-2">
+
+            <button
+                id="stats_button"
+                class="px-5 h-12 rounded-full
+                      bg-[#0e5d74]
+                      text-white
+                      font-bold
+                      hover:scale-105
+                      transition-all
+                      shadow-xl">
+                📊 Statistiques
+            </button>
 
             <!-- RESET -->
             <button id="reset_button" class="w-16 h-12 rounded-full bg-[#d64545] text-2xl font-black text-white shadow-2xl hover:scale-105 transition-all shrink-0">
@@ -667,6 +707,58 @@
   </div>
 </div>
 
+
+<div id="stats_modal"
+     class="fixed inset-0
+            hidden
+            items-center
+            justify-center
+            bg-black/60
+            backdrop-blur-sm
+            z-50">
+
+    <div class="
+        w-[900px]
+        max-w-[95vw]
+        max-h-[90vh]
+        overflow-y-auto
+        bg-[#051538]
+        border
+        border-[#0e5d74]
+        rounded-[30px]
+        p-8
+        shadow-[0_0_40px_rgba(73,230,142,.2)]
+        relative">
+
+        <button
+            id="close_stats"
+            class="
+                absolute
+                top-5
+                right-5
+                w-10
+                h-10
+                rounded-full
+                bg-[#d64545]
+                text-white
+                font-bold">
+            ✕
+        </button>
+
+        <h2 class="text-3xl font-black text-[#49e68e] mb-8">
+            📊 Statistiques
+        </h2>
+
+        <div id="stats_container"
+             class="grid grid-cols-2 gap-5">
+
+        </div>
+
+    </div>
+
+</div>
+
+
 <script>
 
   let timeline = [];
@@ -691,6 +783,15 @@
 
     const sheet =
       workbook.Sheets['Pronostics'];
+
+    const statsSheet =
+      workbook.Sheets['Stats'];
+
+    window.statsData =
+      XLSX.utils.sheet_to_json(statsSheet);
+
+    // console.log(workbook.SheetNames);
+    // console.log(window.statsData);
 
     const rows =
       XLSX.utils.sheet_to_json(sheet);
@@ -1849,39 +1950,49 @@
     return `${day}/${month}/${year} ${hours}:${minutes}`;
   }
 
-  function excelDateToJSDate(excelDate) {
 
+  function renderStats(){
+      const container =
+          document.getElementById("stats_container");
+      container.innerHTML="";
+      window.statsData.forEach(stat=>{
+          const card=document.createElement("div");
+          card.className="stat-card";
+          card.innerHTML=`
+              <div class="stat-title">
+                  ${stat.nom}
+              </div>
+              <div class="stat-value">
+                  ${stat.valeur}
+              </div>
+          `;
+          container.appendChild(card);
+      });
+  }
+
+
+  function excelDateToJSDate(excelDate) {
     const utc_days =
       Math.floor(excelDate - 25569);
-
     const utc_value =
       utc_days * 86400;
-
     const date_info =
       new Date(utc_value * 1000);
-
     const fractional_day =
       excelDate -
       Math.floor(excelDate) +
       0.0000001;
-
     let totalSeconds =
       Math.floor(86400 * fractional_day);
-
     const seconds =
       totalSeconds % 60;
-
     totalSeconds -= seconds;
-
     const hours =
       Math.floor(totalSeconds / (60 * 60));
-
     const minutes =
       Math.floor(totalSeconds / 60) % 60;
-
     date_info.setHours(hours);
     date_info.setMinutes(minutes);
-
     return date_info;
   }
 
@@ -2059,6 +2170,44 @@
     container.style.height = '0px';
 
     renderMatch(0);
+
+  });
+
+  // ======================================
+  // STATS MODAL
+  // ======================================
+
+  const statsModal =
+      document.getElementById("stats_modal");
+
+  document
+  .getElementById("stats_button")
+  .addEventListener("click", () => {
+
+      renderStats();
+
+      statsModal.classList.remove("hidden");
+      statsModal.classList.add("flex");
+
+  });
+
+  document
+  .getElementById("close_stats")
+  .addEventListener("click", () => {
+
+      statsModal.classList.add("hidden");
+      statsModal.classList.remove("flex");
+
+  });
+
+  statsModal.addEventListener("click", (e) => {
+
+      if (e.target === statsModal) {
+
+          statsModal.classList.add("hidden");
+          statsModal.classList.remove("flex");
+
+      }
 
   });
   
