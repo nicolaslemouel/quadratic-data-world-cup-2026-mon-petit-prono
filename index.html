@@ -367,32 +367,56 @@
       }
     }
 
-    .stat-card{
+    .stats-card{
+        display:flex;
+        align-items:center;
+        gap:18px;
         background:#031027;
         border:1px solid #0e5d74;
-        border-radius:18px;
-        padding:20px;
+        border-radius:22px;
+        padding:18px;
         transition:.25s;
-
     }
 
-    .stat-card:hover{
-        transform:translateY(-2px);
+    .stats-card:hover{
         border-color:#49e68e;
+        transform:translateY(-2px);
+        box-shadow:0 0 18px rgba(73,230,142,.15);
     }
 
-    .stat-title{
+    .stats-photo{
+        width:72px;
+        height:72px;
+        border-radius:999px;
+        object-fit:cover;
+        border:2px solid rgba(255,255,255,.15);
+        flex-shrink:0;
+    }
+
+    .stats-middle{
+        flex:1;
+    }
+
+    .stats-title{
         color:#A6D8BA;
+        font-size:13px;
         text-transform:uppercase;
-        font-size:14px;
         font-weight:700;
+        letter-spacing:.05em;
     }
 
-    .stat-value{
-        color:#49e68e;
-        font-size:34px;
+    .stats-player{
+        font-size:24px;
         font-weight:900;
-        margin-top:10px;
+        color:white;
+        margin-top:4px;
+    }
+
+    .stats-value{
+        font-size:36px;
+        font-weight:900;
+        color:#49e68e;
+        line-height:1;
     }
 
     @media (max-width: 1024px) {
@@ -1957,13 +1981,22 @@
       container.innerHTML="";
       window.statsData.forEach(stat=>{
           const card=document.createElement("div");
-          card.className="stat-card";
+          card.className="stats-card";
           card.innerHTML=`
-              <div class="stat-title">
-                  ${stat.nom}
+              <img
+                  class="stats-photo"
+                  src="./photos/${stat.profile_id}.png"
+                  onerror="this.src='./photos/default.png'">
+              <div class="stats-middle">
+                  <div class="stats-title">
+                      ${stat.nom}
+                  </div>
+                  <div class="stats-player">
+                      ${stat.profile_alias}
+                  </div>
               </div>
-              <div class="stat-value">
-                  ${stat.valeur}
+              <div class="stats-value">
+                  ${stat.score}
               </div>
           `;
           container.appendChild(card);
