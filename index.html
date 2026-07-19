@@ -9,6 +9,7 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -269,6 +270,124 @@
       border-color: #A6D8BA !important;
       box-shadow:
         0 0 18px rgba(166,216,186,.25);
+    }
+
+    .stats-container{
+        display:flex;
+        flex-direction:column;
+        gap:12px;
+        max-height:70vh;
+        width:min(1600px,96vw);
+        /* max-width:96vw; */
+        overflow-y:auto;
+        padding-right:8px;
+    }
+
+    .stats-ranking-container{
+        display:flex;
+        flex-direction:column;
+        gap:12px;
+        max-height:70vh;
+        /* width:1400px; */
+        /* max-width:96vw; */
+        overflow-y:auto;
+        padding-right:8px;
+    }
+
+    .stats-ranking-row{
+        display:grid;
+        grid-template-columns:50px 1fr 100px;
+        align-items:center;
+        gap:12px;
+        height:56px;
+    }
+
+    .stats-ranking-row .bar-wrapper{
+        position:relative;
+        height:56px;
+        overflow:hidden;
+        background:#031027;
+        border-radius:14px;
+        border:1px solid rgb(30 41 59);
+    }
+
+    .stats-ranking-row .ranking-bar{
+        position:absolute;
+        left:0;
+        top:0;
+        bottom:0;
+        width:0%;
+        border-radius:14px;
+        transition:width 1200ms cubic-bezier(.22,1,.36,1);
+    }
+
+    .center-wrapper{
+        position:relative;
+        height:56px;
+        overflow:hidden;
+        background:#031027;
+        border-radius:14px;
+        border:1px solid rgb(30 41 59);
+    }
+
+    .center-wrapper::after{
+        content:"";
+        position:absolute;
+        left:50%;
+        top:6px;
+        bottom:6px;
+        width:2px;
+        background:rgb(255, 255, 255, .999);
+        z-index:2;
+    }
+
+    .bar-positive{
+        left:50%;
+        transform-origin:left center;
+    }
+
+    .bar-negative{
+        transform-origin:right center;
+    }
+
+    .stats-center-row{
+        display:grid;
+        grid-template-columns:50px 330px 1fr 90px;
+        align-items:center;
+        gap:16px;
+        height:56px;
+    }
+
+    .stats-center-player{
+        display:flex;
+        align-items:center;
+        gap:12px;
+    }
+
+    .stats-center-graph{
+        position:relative;
+        height:42px;
+        background:#031027;
+        border-radius:12px;
+        border:1px solid rgb(30 41 59);
+        overflow:hidden;
+    }
+
+    .stats-center-axis{
+        position:absolute;
+        left:50%;
+        top:4px;
+        bottom:4px;
+        width:2px;
+        background:rgba(255,255,255,.25);
+    }
+
+    .stats-center-bar{
+        position:absolute;
+        top:0;
+        bottom:0;
+        border-radius:10px;
+        transition:all 900ms cubic-bezier(.22,1,.36,1);
     }
 
     /* =========================================
@@ -742,7 +861,7 @@
             z-50">
 
     <div class="
-        w-[1400px]
+        w-[1700px]
         max-w-[96vw]
         max-h-[90vh]
         overflow-y-auto
@@ -773,10 +892,16 @@
             📊 Statistiques
         </h2>
 
-        <div id="stats_container"
-             class="grid grid-cols-3 gap-4">
-
+        <div id="stats_container" class="grid grid-cols-3 gap-4">
+        </br>
         </div>
+        <h2 id="stats_detail_title"
+            class="text-3xl font-black text-[#A6D8BA] text-center mb-6">
+        </h2>
+
+        <div id="stats_detail_container"
+          class="stats-ranking-container">
+      </div>
 
     </div>
 
@@ -810,13 +935,14 @@
 
     const statsSheet =
       workbook.Sheets['Stats'];
-
     window.statsData =
       XLSX.utils.sheet_to_json(statsSheet);
 
-    // console.log(workbook.SheetNames);
-    // console.log(window.statsData);
-
+    const statsDetailsSheet =
+      workbook.Sheets["Stats details"];
+    window.statsDetails =
+      XLSX.utils.sheet_to_json(statsDetailsSheet);
+    
     const rows =
       XLSX.utils.sheet_to_json(sheet);
 
@@ -944,7 +1070,7 @@
               ">
                 Résultat :
                 <span class="text-white font-bold">
-                  ${match.final_bonus || '?'}
+                  ${match.final_score1 || '?'}
                 </span>
               </div>
             </div>
@@ -972,7 +1098,7 @@
                           .trim()
                           .toLowerCase()
                           .replaceAll(' ', '_')}.png`
-                      : `./assets/flags/${match.final_bonus || '?'}.png`
+                      : `./assets/flags/${match.final_score1 || '?'}.png`
                   }"
                   class="w-full h-full object-cover"
                   onerror="
@@ -1281,38 +1407,21 @@
       renderBonus(rows);
       return;
     }
-    document.getElementById('countdown_block')
-      .classList.add('hidden');
 
-    document.getElementById('countdown_block')
-      .classList.remove('flex');
+    document.getElementById('countdown_block').classList.add('hidden');
+    document.getElementById('countdown_block').classList.remove('flex');
 
-    document.getElementById('flag1').style.visibility =
-      'visible';
+    document.getElementById('flag1').style.visibility = 'visible';
+    document.getElementById('flag2').style.visibility = 'visible';
+    document.getElementById('team1').style.visibility = 'visible';
+    document.getElementById('team2').style.visibility = 'visible';
+    document.getElementById('score_separator').style.display = 'inline';
+    document.getElementById('final_score1').style.display = 'inline';
+    document.getElementById('final_score2').style.display = 'inline';
+    document.getElementById('countdown_block').classList.add('hidden');
+    document.getElementById('match_status').innerText = String(match.status || '').trim();
+    document.getElementById('match_number').innerText = match.match_id;
 
-    document.getElementById('flag2').style.visibility =
-      'visible';
-
-    document.getElementById('team1').style.visibility =
-      'visible';
-
-    document.getElementById('team2').style.visibility =
-      'visible';
-
-    document.getElementById('score_separator').style.display =
-      'inline';
-
-    document.getElementById('final_score1').style.display =
-      'inline';
-
-    document.getElementById('final_score2').style.display =
-      'inline';
-    document.getElementById('countdown_block')
-      .classList.add('hidden');
-    document.getElementById('match_status').innerText =
-      String(match.status || '').trim();
-    document.getElementById('match_number').innerText =
-      match.match_id;
     const formattedDate =
       formatDate(match.datetime_utc_plus_2).trim();
     const parts =
@@ -1348,6 +1457,17 @@
   }
 
   function renderBonus(bonusRows) {
+
+    document.getElementById('countdown_block').classList.add('hidden');
+    document.getElementById('countdown_block').classList.remove('flex');
+
+    document.getElementById('flag1').style.display = 'block';
+    document.getElementById('flag1').style.visibility = 'visible';
+
+    document.getElementById('team1').style.visibility = 'visible';
+
+    document.getElementById('final_score1').style.display = 'inline';
+    document.getElementById('final_score1').style.visibility = 'visible';
 
     const bonus = bonusRows[0];
 
@@ -1397,7 +1517,7 @@
         'MEILLEUR BUTEUR';
 
       const scorer =
-        String(bonus.final_bonus || '')
+        String(bonus.final_score1 || '')
           .trim();
 
       document.getElementById('final_score1').innerText =
@@ -1405,16 +1525,15 @@
 
       img.style.display = 'block';
 
-      img.src =
-        `./assets/players/${scorer
-          .replaceAll(' ', '_')
-          .trim()
-          .toLowerCase()}.png`;
+      const imgBonus = String(bonus.img_bonus || '').trim();
+      img.src = `./assets/players/${imgBonus}.png`;
 
       img.onerror = () => {
         img.src =
           './assets/players/default.png';
       };
+
+      console.log("105", bonus.img_bonus);
     }
 
     // =====================================
@@ -1427,7 +1546,7 @@
         'CHAMPION DU MONDE';
 
       const country =
-        String(bonus.final_bonus || '')
+        String(bonus.final_score1 || '')
           .trim();
 
       document.getElementById('final_score1').innerText =
@@ -1435,13 +1554,17 @@
 
       img.style.display = 'block';
 
-      img.src =
-        `./assets/flags/${country}.png`;
+      const imgBonus = String(bonus.img_bonus || '').trim();
+      img.onerror = null;
+      img.src = "";
+      img.src = `./assets/flags/${imgBonus}.png`;
 
       img.onerror = () => {
         img.src =
           './assets/flags/default.png';
       };
+      
+      console.log("106", bonus.img_bonus);
     }
 
     bonusRows.sort((a, b) =>
@@ -1974,6 +2097,224 @@
     return `${day}/${month}/${year} ${hours}:${minutes}`;
   }
 
+  function renderPositiveRanking(rows){
+    document.getElementById("stats_detail_title").innerText =
+        rows[0].nom;
+    const container =
+        document.getElementById("stats_detail_container");
+    container.innerHTML="";
+    if(!rows.length) return;
+    rows.sort((a, b) => {
+        const rankA = a.rank === "" || a.rank == null ? 9999 : Number(a.rank);
+        const rankB = b.rank === "" || b.rank == null ? 9999 : Number(b.rank);
+        return rankA - rankB;
+    });
+    const max =
+        Math.max(...rows.map(r=>Number(r.score)));
+    rows.forEach(player=>{
+        const value =
+            Number(player.score);
+        const aliasColor =
+          value > 0
+              ? "#000000"
+              : "#49e68e";
+        const width =
+            value/max*100;
+        const rank =
+            player.rank === "" || player.rank == null
+                ? null
+                : Number(player.rank);
+
+        const medal =
+            rank === 1 ? "🥇" :
+            rank === 2 ? "🥈" :
+            rank === 3 ? "🥉" :
+            rank ?? "—";
+        const color1 =
+            player.profile_color_1 || "#A6D8BA";
+        const color2 =
+            player.profile_color_2 || "#4e9b73";
+        const gradient =
+            `linear-gradient(90deg,${color1},${color2})`;
+        const row =
+            document.createElement("div");
+        row.className="stats-ranking-row";
+        row.innerHTML=`
+            <div class="rank">
+                ${medal}
+            </div>
+            <div class="bar-wrapper">
+                <div class="ranking-bar"></div>
+                <div class="bar-content">
+                    <img
+                        class="avatar"
+                        src="./photos/${player.profile_id}.png"
+                        onerror="this.src='./photos/default.png'">
+                    <div class="player-info">
+                        <div
+                          class="alias"
+                          style="color:${aliasColor}">
+                          ${player.profile_alias}
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="points-wrapper">
+                <div class="points-value">
+                    ${value}
+                </div>
+            </div>
+        `;
+        container.appendChild(row);
+        const bar =
+            row.querySelector(".ranking-bar");
+
+        requestAnimationFrame(()=>{
+            bar.style.width=`${width}%`;
+            bar.style.background=gradient;
+        });
+    });
+  }
+
+  function renderCenteredRanking(rows){
+
+      document.getElementById("stats_detail_title").innerText =
+          rows[0].nom;
+
+      const container =
+          document.getElementById("stats_detail_container");
+
+      container.innerHTML = "";
+
+      rows.sort((a,b)=>Number(b.score)-Number(a.score));
+
+      const maxAbs = Math.max(
+          ...rows.map(r=>Math.abs(Number(r.score)))
+      );
+
+      rows.forEach(player=>{
+
+          const value = Number(player.score);
+
+          const percent = Math.abs(value)/maxAbs*50;
+
+          const medal =
+              player.rank==1 ? "🥇" :
+              player.rank==2 ? "🥈" :
+              player.rank==3 ? "🥉" :
+              player.rank;
+
+          const aliasColor =
+              value>=0
+                  ? "#49e68e"
+                  : "#A92424";
+
+          const gradient =
+              value>=0
+                  ? `linear-gradient(90deg,${player.profile_color_1},${player.profile_color_2})`
+                  : `linear-gradient(90deg,#d9534f,#ff8a8a)`;
+
+          const row = document.createElement("div");
+
+          row.className = "stats-center-row";
+
+          row.innerHTML = `
+
+              <div class="rank">${medal}</div>
+
+              <div class="stats-center-player">
+                  <img
+                      class="avatar"
+                      src="./photos/${player.profile_id}.png"
+                      onerror="this.src='./photos/default.png'">
+                  <div class="alias" style="color:${aliasColor}">
+                      ${player.profile_alias}
+                  </div>
+              </div>
+
+              <div class="stats-center-graph">
+                  <div class="stats-center-axis"></div>
+                  <div class="stats-center-bar"></div>
+              </div>
+
+              <div class="points-wrapper">
+                  <div class="points-value" style="color:${aliasColor}">
+                      ${value>0?"+":""}${value}
+                  </div>
+              </div>
+
+          `;
+
+          container.appendChild(row);
+
+          const bar = row.querySelector(".stats-center-bar");
+
+          requestAnimationFrame(()=>{
+
+              bar.style.background = gradient;
+              bar.style.width = percent + "%";
+
+              if(value>=0){
+
+                  bar.style.left = "50%";
+
+              }else{
+
+                  bar.style.left = (50-percent)+"%";
+
+              }
+
+          });
+
+      });
+
+  }
+
+  function openStat(id){
+
+      const rows =
+          window.statsDetails.filter(
+              x=>x.nom_id==id
+          );
+      
+      const axisType = rows[0].axis_type || "positive";
+
+      switch(rows[0].graph_type){
+
+          case "bar":
+              if(axisType === "centered"){
+                  renderCenteredRanking(rows);
+              }
+              else{
+                  renderPositiveRanking(rows);
+              }
+              break;
+
+          case "podium":
+              renderPodium(rows);
+              break;
+
+          case "pie":
+              renderPie(rows);
+              break;
+
+          case "line":
+              renderLine(rows);
+              break;
+      }
+
+      document
+          .getElementById("statsDetails")
+          .classList
+          .remove("hidden");
+
+      document
+          .getElementById("statsDetails")
+          .classList
+          .add("flex");
+
+  }
+
 
   function renderStats(){
       const container =
@@ -1982,6 +2323,7 @@
       window.statsData.forEach(stat=>{
           const card=document.createElement("div");
           card.className="stats-card";
+          card.style.cursor="pointer";
           card.innerHTML=`
               <img
                   class="stats-photo"
@@ -1999,6 +2341,12 @@
                   ${stat.score}
               </div>
           `;
+
+          card.addEventListener("click", () => {
+            console.log("CLICK", stat.nom_id);
+            openStat(stat.nom_id);
+        });
+
           container.appendChild(card);
       });
   }
