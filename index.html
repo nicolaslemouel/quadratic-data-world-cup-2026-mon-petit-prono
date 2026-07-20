@@ -688,6 +688,18 @@
           <div class="flex items-center gap-2">
 
             <button
+                id="filter_button"
+                class="px-5 h-12 rounded-full
+                      bg-[#0b3d91]
+                      text-white
+                      font-bold
+                      hover:scale-105
+                      transition-all
+                      shadow-xl">
+                👥 Joueurs
+            </button>
+
+            <button
                 id="stats_button"
                 class="px-5 h-12 rounded-full
                       bg-[#0e5d74]
@@ -907,10 +919,60 @@
 
 </div>
 
+<div id="filter_modal"
+     class="fixed inset-0 hidden items-center justify-center bg-black/60 backdrop-blur-sm z-50">
+
+    <div class="w-[500px] max-w-[95vw] bg-[#051538] rounded-[30px] p-8 relative">
+
+        <button id="close_filter"
+            class="absolute top-5 right-5
+                  w-10 h-10
+                  rounded-full
+                  bg-[#0f254d]
+                  border border-[#49e68e]
+                  text-[#49e68e]
+                  text-xl
+                  hover:bg-[#49e68e]
+                  hover:text-[#020b25]
+                  transition-all
+                  shadow-lg">
+            ✖️
+        </button>
+
+        <button id="select_all"
+        class="px-5 py-2 rounded-full
+               bg-gradient-to-r from-[#18b893] to-[#49e68e]
+               text-[#020b25]
+               font-bold
+               shadow-lg
+               hover:scale-105
+               transition-all duration-200">
+        ✅ Tout
+        </button>
+
+        <button id="unselect_all"
+            class="px-5 py-2 rounded-full
+                  bg-gradient-to-r from-[#d64b4b] to-[#ff7676]
+                  text-white
+                  font-bold
+                  shadow-lg
+                  hover:scale-105
+                  transition-all duration-200">
+            🚫 Aucun
+        </button>
+
+        <div id="filter_container"></div>
+
+    </div>
+
+</div>
+
 
 <script>
 
   let timeline = [];
+  let selectedPlayers = [];
+  let allPlayers = [];
   let currentMatchIndex = 0;
   let playing = false;
   let interval = null;
@@ -945,6 +1007,11 @@
     
     const rows =
       XLSX.utils.sheet_to_json(sheet);
+
+    allPlayers = [...new Set(rows.map(r => r.profile_alias))]
+        .sort((a, b) => a.localeCompare(b));
+
+    selectedPlayers = [...allPlayers];
 
     buildTimeline(rows);
     renderTimeline();
@@ -1576,6 +1643,11 @@
   }
 
   function renderRanking(players) {
+
+    players = players.filter(player =>
+        selectedPlayers.includes(player.profile_alias)
+    );
+
     if (!players.length) {
       document.getElementById('ranking_container').innerHTML = '';
       return;
@@ -2352,6 +2424,50 @@
   }
 
 
+  function renderPlayerFilter(){
+
+      const container = document.getElementById("filter_container");
+
+      container.innerHTML = "";
+
+      allPlayers.forEach(alias=>{
+
+          const label = document.createElement("label");
+
+          label.className =
+              "flex items-center gap-3 text-white cursor-pointer";
+
+          label.innerHTML = `
+              <input
+                  class="player-filter"
+                  type="checkbox"
+                  value="${alias}"
+                  ${selectedPlayers.includes(alias) ? "checked" : ""}
+              >
+              ${alias}
+          `;
+
+          container.appendChild(label);
+
+      });
+
+      document.querySelectorAll(".player-filter").forEach(cb=>{
+
+          cb.addEventListener("change",()=>{
+
+              selectedPlayers =
+                  [...document.querySelectorAll(".player-filter:checked")]
+                      .map(c=>c.value);
+
+              renderMatch(currentMatchIndex);
+
+          });
+
+      });
+
+  }
+
+
   function excelDateToJSDate(excelDate) {
     const utc_days =
       Math.floor(excelDate - 25569);
@@ -2590,6 +2706,53 @@
 
       }
 
+  });
+
+  const filterModal =
+      document.getElementById("filter_modal");
+
+  console.log(document.getElementById("filter_button"));
+  console.log(document.getElementById("filter_modal"));
+  console.log(document.getElementById("close_filter"));
+  console.log(document.getElementById("select_all"));
+  console.log(document.getElementById("unselect_all"));
+
+  document
+      .getElementById("filter_button")
+      .addEventListener("click",()=>{
+          renderPlayerFilter();
+          filterModal.classList.remove("hidden");
+          filterModal.classList.add("flex");
+  });
+
+  document
+      .getElementById("close_filter")
+      .addEventListener("click",()=>{
+          filterModal.classList.add("hidden");
+          filterModal.classList.remove("flex");
+  });
+
+  filterModal.addEventListener("click",(e)=>{
+      if(e.target===filterModal){
+          filterModal.classList.add("hidden");
+          filterModal.classList.remove("flex");
+      }
+  });
+
+  document
+      .getElementById("select_all")
+      .addEventListener("click",()=>{
+          selectedPlayers=[...allPlayers];
+          renderPlayerFilter();
+          renderMatch(currentMatchIndex);
+  });
+
+  document
+      .getElementById("unselect_all")
+      .addEventListener("click",()=>{
+          selectedPlayers=[];
+          renderPlayerFilter();
+          renderMatch(currentMatchIndex);
   });
   
   loadExcel();
